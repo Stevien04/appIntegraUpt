@@ -1,0 +1,11 @@
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\controller\AuthController.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\repository\UserRepository.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\dto\RegisterRequest.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\dto\AuthResponse.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\IntegrauptBackendApplication.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\service\CryptoService.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\Util\AESGCMUtil.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\service\UserService.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\domain\user\User.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\config\CryptoProperties.java
+D:\Proyecto unidad ii\front\appUPT\integraupt-backend\src\main\java\com\integraupt\backend\dto\LoginRequest.java
