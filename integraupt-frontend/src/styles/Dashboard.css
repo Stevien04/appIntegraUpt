@@ -1,0 +1,62 @@
+.dashboard-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+    padding: 2rem;
+}
+
+.dashboard-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 32rem;
+    width: 100%;
+    padding: 2rem;
+    text-align: center;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    margin-bottom: 1rem;
+}
+
+.dashboard-subtitle {
+    font-size: 1.125rem;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.dashboard-highlight {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.dashboard-message {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.dashboard-logout-btn {
+    background-color: #ef4444;
+    border: none;
+    border-radius: 0.5rem;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dashboard-logout-btn:hover {
+    background-color: #dc2626;
+}
+
+.dashboard-logout-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.3);
+}
