@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# IntegraUPT - Desarrollo Local
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este proyecto está dividido en dos carpetas:
 
-Currently, two official plugins are available:
+- `integraupt-backend`: API construida con Spring Boot (Maven).
+- `integraupt-frontend`: Aplicación web en React + Vite.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Para trabajar de forma cómoda se añadió un script que inicia ambas partes al mismo tiempo desde el frontend.
 
-## React Compiler
+## Requisitos previos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+ y npm
+- Java 17+ (para Spring Boot)
+- Maven disponible en la línea de comandos
 
-## Expanding the ESLint configuration
+## Instalación de dependencias
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+cd integraupt-frontend
+npm install
+```
+## Levantar frontend y backend juntos
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Desde la carpeta `integraupt-frontend` ejecuta:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev:full
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Este comando:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Ejecuta `mvn spring-boot:run` dentro de `../integraupt-backend` para levantar la API.
+2. Inicia Vite con `npm run dev -- --host` para servir el frontend.
+3. Mantiene ambos procesos activos y, al cerrar el comando, finaliza los dos servidores.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Si necesitas ejecutar solo una parte puedes usar `npm run backend` o `npm run dev` según corresponda.
+
+## Scripts disponibles
+
+- `npm run dev` – Levanta únicamente el frontend con Vite.
+- `npm run backend` – Inicia la API de Spring Boot.
+- `npm run dev:full` – Levanta backend y frontend en paralelo.
+- `npm run build` – Compila el frontend para producción.
+- `npm run lint` – Ejecuta ESLint.
+- `npm run preview` – Visualiza el build generado por Vite.
