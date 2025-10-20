@@ -22,19 +22,10 @@ public class UserService {
         this.cryptoService = cryptoService;
     }
 
-    public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya está registrado");
-        }
 
-        CryptoService.EncryptedPayload encryptedPassword = cryptoService.encrypt(request.getPassword());
-        User user = new User(request.getEmail(), encryptedPassword.cipherText(), encryptedPassword.iv());
-        User saved = userRepository.save(user);
-        return new AuthResponse("Usuario registrado correctamente", saved.getId());
-    }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas"));
 
         String decryptedPassword = cryptoService.decrypt(new CryptoService.EncryptedPayload(

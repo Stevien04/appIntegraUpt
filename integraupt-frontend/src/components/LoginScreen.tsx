@@ -1,11 +1,33 @@
+import {type FormEvent, useState } from 'react';
+import {
+    ArrowLeft,
+    CheckCircle2,
+    ChevronRight,
+    GraduationCap,
+    KeyRound,
+    Lock,
+    LogOut,
+    User,
+} from 'lucide-react';
+import '../styles/LoginScreen.css';
+
 type LoginMode = 'selection' | 'academic' | 'administrative';
 
 interface LoginSuccessResponse {
-    message: string;
+    message?: string;
     userId: number;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+interface AuthenticatedUser {
+    email: string;
+    userId: number;
+    message: string;
+}
+
+const STATIC_CAPTCHA = '4721';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8080';
+
+export function LoginScreen(): JSX.Element {
     const [loginMode, setLoginMode] = useState<LoginMode>('selection');
     const [academicCredentials, setAcademicCredentials] = useState({
         email: '',
@@ -18,6 +40,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [authenticatedUser, setAuthenticatedUser] = useState<AuthenticatedUser | null>(null);
+
+    const resetForms = () => {
+        setAcademicCredentials({ email: '', password: '', verification: '' });
+        setAdministrativeCredentials({ email: '', password: '' });
+    };
 
     const changeMode = (mode: LoginMode) => {
         setError(null);
@@ -35,40 +63,50 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 body: JSON.stringify({ email, password }),
             });
 
-            let payload: LoginSuccessResponse | { message?: string; error?: string } | null = null;
-            try {
-                payload = (await response.json()) as LoginSuccessResponse | { message?: string; error?: string };
-            } catch (parseError) {
-                payload = null;
+            const rawBody = await response.text();
+            let payload: unknown = null;
+
+            if (rawBody) {
+                try {
+                    payload = JSON.parse(rawBody);
+                } catch {
+                    payload = null;
+                }
             }
 
             if (!response.ok) {
                 const details = payload as { message?: string; error?: string } | null;
-                const message = details?.message ?? details?.error ?? 'Error al iniciar sesión. Verifica tus credenciales.';
+                const message =
+                    details?.message ?? details?.error ?? 'Error al iniciar sesión. Verifica tus credenciales.';
                 throw new Error(message);
             }
 
-            if (!payload || typeof (payload as LoginSuccessResponse).userId !== 'number') {
+            if (
+                typeof payload !== 'object' ||
+                payload === null ||
+                typeof (payload as { userId?: unknown }).userId !== 'number'
+            ) {
                 throw new Error('Respuesta del servidor no válida.');
             }
 
             const data = payload as LoginSuccessResponse;
-            onLoginSuccess({ email, userId: data.userId });
-            setAcademicCredentials({ email: '', password: '', verification: '' });
-            setAdministrativeCredentials({ email: '', password: '' });
+            const message = data.message ?? 'Inicio de sesión exitoso.';
+            setAuthenticatedUser({ email, userId: data.userId, message });
+            resetForms();
             setLoginMode('selection');
+            setError(null);
         } catch (authError) {
             if (authError instanceof Error) {
                 setError(authError.message);
             } else {
-                setError('Error inesperado al iniciar sesión');
+                setError('Error inesperado al iniciar sesión.');
             }
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleAcademicSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleAcademicSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
 
@@ -80,49 +118,83 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         await authenticate(academicCredentials.email, academicCredentials.password);
     };
 
-    const handleAdministrativeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleAdministrativeSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
         await authenticate(administrativeCredentials.email, administrativeCredentials.password);
     };
 
-    const renderSelection = () => (
-        <div className="login-container">
-            <div className="login-wrapper">
-                <div className="login-header">
-                    <div className="login-logo login-logo-blue">
-                        <GraduationCap className="login-logo-icon" />
-                    </div>
-                    <h1 className="login-title">IntegraUPT</h1>
-                    <p className="login-subtitle">PREGRADO</p>
-                    <p className="login-description">Selecciona tu tipo de acceso</p>
-                </div>
+    const handleLogout = () => {
+        setAuthenticatedUser(null);
+        setLoginMode('selection');
+        setError(null);
+    };
 
-                <div className="login-card">
-                    <div className="login-buttons">
-                        <button onClick={() => changeMode('academic')} className="login-btn login-btn-academic">
-                            <GraduationCap className="login-btn-icon" />
-                            <span>Acceso Académico</span>
-                            <ChevronRight className="login-btn-arrow" />
-                        </button>
-                        <button onClick={() => changeMode('administrative')} className="login-btn login-btn-admin">
-                            <User className="login-btn-icon" />
-                            <span>Acceso Administrativo</span>
-                            <ChevronRight className="login-btn-arrow" />
+    // Si el usuario está autenticado
+    if (authenticatedUser) {
+        return (
+            <div className="login-container">
+                <div className="login-wrapper">
+                    <div className="login-header">
+                        <div className="login-logo login-logo-blue">
+                            <CheckCircle2 className="login-logo-icon" />
+                        </div>
+                        <h1 className="login-title">Bienvenido</h1>
+                        <p className="login-description">{authenticatedUser.message}</p>
+                    </div>
+                    <div className="login-card login-success-card">
+                        <p className="login-success-highlight">{authenticatedUser.email}</p>
+                        <p className="login-success-text">
+                            Tu sesión está activa. Puedes continuar con la plataforma o cerrar sesión para volver al inicio.
+                        </p>
+                        <button type="button" className="login-success-btn" onClick={handleLogout}>
+                            <LogOut className="login-success-btn-icon" /> Cerrar sesión
                         </button>
                     </div>
-                </div>
-
-                <div className="login-footer">
-                    <p>Universidad Privada de Tacna</p>
-                    <p className="login-footer-sub">Sistema Integrado de Gestión Académica</p>
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
 
-    if (loginMode === 'selection') return renderSelection();
+    // Selección de tipo de acceso
+    if (loginMode === 'selection') {
+        return (
+            <div className="login-container">
+                <div className="login-wrapper">
+                    <div className="login-header">
+                        <div className="login-logo login-logo-blue">
+                            <GraduationCap className="login-logo-icon" />
+                        </div>
+                        <h1 className="login-title">IntegraUPT</h1>
+                        <p className="login-subtitle">PREGRADO</p>
+                        <p className="login-description">Selecciona tu tipo de acceso</p>
+                    </div>
 
+                    <div className="login-card">
+                        <div className="login-buttons">
+                            <button onClick={() => changeMode('academic')} className="login-btn login-btn-academic">
+                                <GraduationCap className="login-btn-icon" />
+                                <span>Acceso Académico</span>
+                                <ChevronRight className="login-btn-arrow" />
+                            </button>
+                            <button onClick={() => changeMode('administrative')} className="login-btn login-btn-admin">
+                                <User className="login-btn-icon" />
+                                <span>Acceso Administrativo</span>
+                                <ChevronRight className="login-btn-arrow" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="login-footer">
+                        <p>Universidad Privada de Tacna</p>
+                        <p className="login-footer-sub">Sistema Integrado de Gestión Académica</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Acceso académico
     if (loginMode === 'academic') {
         return (
             <div className="login-container">
@@ -139,7 +211,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     <div className="login-card">
                         <button onClick={() => changeMode('selection')} className="login-back-btn">
                             <ArrowLeft className="login-back-icon" /> Volver
-                        </button>{error && <div className="login-error">{error}</div>}
+                        </button>
+                        {error && <div className="login-error">{error}</div>}
 
                         <form onSubmit={handleAcademicSubmit} className="login-form">
                             <div className="login-form-group">
@@ -166,13 +239,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                             </div>
 
                             <div className="login-form-group">
-                                <label htmlFor="password-academic" className="login-label">
+                                <label htmlFor="academic-password" className="login-label">
                                     Contraseña
                                 </label>
                                 <div className="login-input-wrapper">
                                     <Lock className="login-input-icon" />
                                     <input
-                                        id="password-academic"
+                                        id="academic-password"
                                         type="password"
                                         className="login-input"
                                         placeholder="Ingresa tu contraseña"
@@ -189,27 +262,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                             </div>
 
                             <div className="login-form-group">
-                                <label className="login-label">Código de verificación</label>
-                                <div className="login-captcha-container">
-                                    <div className="login-captcha-display">{STATIC_CAPTCHA}</div>
-                                    <button type="button" className="login-captcha-refresh" disabled>
-                                        <RefreshCw className="login-captcha-icon" />
-                                    </button>
+                                <label htmlFor="academic-verification" className="login-label">
+                                    Código de verificación
+                                </label>
+                                <div className="login-input-wrapper">
+                                    <input
+                                        id="academic-verification"
+                                        type="text"
+                                        className="login-input"
+                                        placeholder="Ingresa el código mostrado"
+                                        value={academicCredentials.verification}
+                                        onChange={(event) =>
+                                            setAcademicCredentials((prev) => ({
+                                                ...prev,
+                                                verification: event.target.value,
+                                            }))
+                                        }
+                                        required
+                                    />
+                                    <span className="login-captcha">{STATIC_CAPTCHA}</span>
                                 </div>
-                                <input
-                                    type="text"
-                                    className="login-input"
-                                    placeholder="Ingresa el código de verificación"
-                                    maxLength={4}
-                                    value={academicCredentials.verification}
-                                    onChange={(event) =>
-                                        setAcademicCredentials((prev) => ({
-                                            ...prev,
-                                            verification: event.target.value,
-                                        }))
-                                    }
-                                    required
-                                />
                             </div>
 
                             <button type="submit" className="login-submit-btn login-submit-academic" disabled={isLoading}>
@@ -235,6 +307,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </div>
         );
     }
+
+    // Acceso administrativo
     return (
         <div className="login-container">
             <div className="login-wrapper">
@@ -254,9 +328,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     {error && <div className="login-error">{error}</div>}
 
                     <form onSubmit={handleAdministrativeSubmit} className="login-form">
-                        <div className="login-form-group"><label htmlFor="admin-email" className="login-label">
-                            Correo electrónico
-                        </label>
+                        <div className="login-form-group">
+                            <label htmlFor="admin-email" className="login-label">
+                                Correo electrónico
+                            </label>
                             <div className="login-input-wrapper">
                                 <User className="login-input-icon" />
                                 <input
@@ -321,4 +396,4 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </div>
         </div>
     );
-};
+}
